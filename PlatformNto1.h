@@ -256,4 +256,132 @@ extern void Timer64Local_Reset(Timer64Config config);
 *****************************************************************************/
 extern int Timer64Local_InterruptCore_Init(unsigned int IntNum);
 
+
+/************************************************************************************************************/
+//内核中断配置相关函数，在无BIOS环境下使用
+/************************************************************************************************************/
+
+/*****************************************************************************
+ Prototype    : InterruptCore_GlobleInit
+ Description  : 内核中断配置初始化，在无BIOS环境下使用，配置中断时首先要调用该函数
+ Input        : 无
+ Output       : 无
+ Return Value : 信息
+*****************************************************************************/
+extern void InterruptCore_GlobleInit(void);
+/*****************************************************************************
+ Prototype    : InterruptCore_GlobleEn
+ Description  : 内核中断全部使能，在无BIOS环境下使用，要在所有中断配置完成后，最后调用该函数
+ Input        : 无
+ Output       : 无
+ Return Value : 无
+*****************************************************************************/
+extern void InterruptCore_GlobleEn(void);
+
+
+
+
+/************************************************************************************************************/
+//UART
+/************************************************************************************************************/
+typedef enum
+{
+	UART_USE_CORE_TO_TX = 0,
+	UART_USE_EDMA_TO_TX = 1
+}UART_Tx_Master;
+typedef enum
+{
+	TRIGGER_LEVEL_1BYTE = CSL_UART_FCR_RXFIFTL_CHAR1,
+	TRIGGER_LEVEL_4BYTE = CSL_UART_FCR_RXFIFTL_CHAR4,
+	TRIGGER_LEVEL_8BYTE = CSL_UART_FCR_RXFIFTL_CHAR8,
+	TRIGGER_LEVEL_14BYTE = CSL_UART_FCR_RXFIFTL_CHAR14
+}UART_triLevel;
+typedef enum
+{
+	OVER_SAMPLING_16X = CSL_UART_MDR_OSM_SEL_16XOVERSAMPLING,
+	OVER_SAMPLING_13X = CSL_UART_MDR_OSM_SEL_13XOVERSAMPLING
+}UART_overSampling;
+typedef enum
+{
+	AUTO_FLOW_DIS = 0,
+	AUTO_FLOW_CTS_EN = 1,
+	AUTO_FLOW_RTS_CTS_EN = 2
+}UART_autoFlow;
+typedef enum
+{
+	ONE_STOP_BIT = CSL_UART_LCR_STB_1BIT,
+	WLS_STOP_BIT = CSL_UART_LCR_STB_WLS
+}UART_stopMode;
+typedef enum
+{
+
+	DATA_LEN_5BIT = CSL_UART_LCR_WLS_5BITS,
+	DATA_LEN_6BIT = CSL_UART_LCR_WLS_6BITS,
+	DATA_LEN_7BIT = CSL_UART_LCR_WLS_7BITS,
+	DATA_LEN_8BIT = CSL_UART_LCR_WLS_8BITS
+}UART_dataLength;
+typedef enum
+{
+	PARITY_DISABLE = 0,
+	ODD_PARITY_ENABLE_SET1 = 1,
+	EVEN_PARITY_ENABLE_SET1 = 2,
+	STICK_PARITY_ENABLE_SET = 3,
+	STICK_PARITY_ENABLE_CLR = 4
+}UART_parityMode;
+typedef struct
+{
+	unsigned int 		baudRate;//波特率
+	unsigned int  		DSP_Core_Speed_Hz;//DSP内核时钟
+	UART_parityMode 	parityMode;//奇偶校验方式
+	UART_stopMode   	stopMode;//停止位
+	UART_dataLength 	dataLen;//数据位
+	UART_autoFlow   	autoFlow;//Flow
+	UART_overSampling	osmSel;//采样方式
+	UART_triLevel   	fifoRxTriBytes;//中断触发字节数
+    UART_Tx_Master      txMaster;//传输方式，DMA/core
+    Bool 		        bLoopBackEnable;//回环
+}UART_Config;
+
+/*****************************************************************************
+ Prototype    : Uart_Init
+ Description  : 串口初始化
+ Input        : UART_Config *UARTCfg，串口配置
+ Output       : 无
+ Return Value : 无
+*****************************************************************************/
+extern void Uart_Init(UART_Config *UARTCfg);
+/*****************************************************************************
+ Prototype    : UartInterrupt_Init
+ Description  : 串口中断初始化(CIC部分),内核部分需要在bios中进行配置（包括中断号、中断函数），中断配置内核部分配置参照以下，
+					Hwi_Params hwiParams;
+					Hwi_Handle myHwi;
+					Hwi_Params_init(&hwiParams);
+					hwiParams.eventId = CSL_GEM_INTC0_OUT0_OR_INTC1_OUT0;
+					hwiParams.enableInt = TRUE;
+					myHwi = Hwi_create(4, (ti_sysbios_hal_Hwi_FuncPtr)KeyStone_UART_Rx_ISR, &hwiParams, NULL);//中断4，中断服务函数KeyStone_UART_Rx_ISR，要用户自行实现
+					if (myHwi == NULL)
+						printf("Hwi create failed\n");
+ Input        : 无
+ Output       : 无
+ Return Value : 无
+*****************************************************************************/
+extern void UartInterrupt_Init(void);
+/*****************************************************************************
+ Prototype    : UartWrite
+ Description  : 串口发送函数
+ Input        : unsigned char*buff,发送数据的指针
+ 	 	 	 	unsigned int len，发送的数据量
+ Output       : 无
+ Return Value : 无
+*****************************************************************************/
+extern void UartWrite(unsigned char*buff,unsigned int len);
+/*****************************************************************************
+ Prototype    : UartRead
+ Description  : 串口读取函数
+ Input        :	unsigned int buffByteLen,读取的数据长度
+ Output       : unsigned char *buffer,读取的数据
+ Return Value : 读取的数据量
+*****************************************************************************/
+extern unsigned int UartRead(unsigned char *buffer, unsigned int buffByteLen);
+
 #endif /* PLATFORMNTO1_H_ */
