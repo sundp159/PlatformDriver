@@ -90,7 +90,6 @@ extern void Clr_GPIO(unsigned char num);
 
 
 
-
 /************************************************************************************************************/
 //GBE
 /************************************************************************************************************/
@@ -112,70 +111,6 @@ extern int GBE_ConfigSGMIISerdes(void);
 *****************************************************************************/
 extern int GBE_InitEthernetSGMII(unsigned int macPortNum);
 
-
-
-/************************************************************************************************************/
-//SRIO
-/************************************************************************************************************/
-//SRIO设备ID
-#define DSP0_SRIO_BASE_ID	0x08
-#define DSP1_SRIO_BASE_ID	0x09
-#define DSP2_SRIO_BASE_ID   0x00
-#define DSP3_SRIO_BASE_ID   0x03
-#define K7_SRIO_BASE_ID     0x06
-/*****************************************************************************
- Prototype    : SRIOInterrupts_Init
- Description  : SRIO doorbell中断配置，在BIOS环境下配置完此函数后要参照以下代码配置CORE中断
-					Hwi_Params hwiParams;
-					Hwi_Handle myHwi;
-					Hwi_Params_init(&hwiParams);
-					hwiParams.eventId = CSL_GEM_INTDST_N_PLUS_16;
-					hwiParams.enableInt = TRUE;
-					myHwi = Hwi_create(5, (ti_sysbios_hal_Hwi_FuncPtr)SRIO_Doorbell_ISR, &hwiParams, NULL);//中断5，中断服务函数SRIO_Doorbell_ISR，需用户自己实现
-					if (myHwi == NULL){
-						printf("Hwi create failed\n");
-					}
- Input        : 无
- Output       : 无
- Return Value : 无
-*****************************************************************************/
-extern void SRIOInterrupts_Init(void);
-/*****************************************************************************
- Prototype    : SRIO_Init
- Description  : SRIO初始化。注：必须在SRIOInterrupts_Init函数之后运行！
- Input        : unsigned char DspSrioId:DSP的SRIO源ID号，各自DSP要配置成自己的ID号。
- Output       : 无
- Return Value : 配置成功返回1。
-*****************************************************************************/
-extern int SRIO_Init(unsigned char DspSrioId);
-/*****************************************************************************
- Prototype    : SRIO_Send
- Description  : SRIO发送函数
- Input        : unsigned int source_address,发送数据源地址
-				unsigned int dest_address,发送数据目标地址
-				unsigned int send_size,数据大小，最大1MB
-				unsigned char desID,发送设备目标ID
- Output       : 无
- Return Value : 发送成功返回1。
-*****************************************************************************/
-extern int SRIO_Send(unsigned int source_address,unsigned int dest_address,unsigned int send_size, unsigned char desID);
-/*****************************************************************************
- Prototype    : SRIO_Send_DoorBell
- Description  : SRIO发送doorbell
- Input        : unsigned int uiDestID, 目标ID
- 	 	 	 	unsigned int uiDoorBellInfo，doorbell信息
- Output       : 无
- Return Value : 无
-*****************************************************************************/
-extern void SRIO_Send_DoorBell(unsigned int uiDestID, unsigned int uiDoorBellInfo);
-/*****************************************************************************
- Prototype    : SRIO_Read_DoorBell
- Description  : SRIO读doorbell，注，该函数应在doorbell中断函数中使用。
- Input        : 无
- Output       : 无
- Return Value : doorbell信息
-*****************************************************************************/
-extern unsigned int SRIO_Read_DoorBell(void);
 
 
 #endif /* PLATFORMNTO1_H_ */
