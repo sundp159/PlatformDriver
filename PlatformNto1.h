@@ -384,4 +384,75 @@ extern void UartWrite(unsigned char*buff,unsigned int len);
 *****************************************************************************/
 extern unsigned int UartRead(unsigned char *buffer, unsigned int buffByteLen);
 
+
+/************************************************************************************************************/
+//多核交互
+/************************************************************************************************************/
+
+#define CORENUM				8 //芯片core数量
+#define MPP_MASTER_CORE		0 //主核定义
+#define MPP_CORE_NUM		8 //使用的核数量
+#define MPP_NEST_NUM_MIN	1 //使用同步函数的最小嵌套次数
+#define MPP_NEST_NUM_MAX 	8 //使用同步函数的最大嵌套次数
+#define MPP_TIMEOUT_US	    (500*1000) //同步等待时间500ms
+
+typedef struct structMultiCoreSetting{
+	unsigned int MultiCoreCount;
+	unsigned int MasterCore;
+	unsigned int CurrentCore;
+	unsigned int MPPTime;
+}structMultiCoreSetting;
+
+typedef struct structSyncStatus{
+	int PreviousStatus;
+	int CurrentStatus;
+	int NestedCount;
+	int ErrorStatus;
+	int IsUpdate[CORENUM];
+}structSyncStatus;
+
+typedef struct structMultiCoreSync{
+	structSyncStatus 	SyncStatusCopy;
+	int 				SyncFlag[MPP_NEST_NUM_MAX];
+}structMultiCoreSync;
+
+//需要用户在工程里使用定义以下变量，并在0x9FFFFB00地址开辟.sync_flag段，把核间交互变量SyncStatus、MultiCoreSync如下定义在.sync_flag段
+//#pragma DATA_SECTION(SyncStatus, ".sync_flag");
+//#pragma DATA_SECTION(MultiCoreSync, ".sync_flag");
+//#pragma DATA_ALIGN(MultiCoreSync, CACHE_L1D_LINESIZE);
+extern structSyncStatus SyncStatus;//48
+extern structMultiCoreSync MultiCoreSync[CORENUM];//80*8
+
+//需要用户在工程里自行定义MultiCoreSetting变量，作为各个核核间交互的变量，注：变量一定要放在各自的L2区域。
+extern structMultiCoreSetting MultiCoreSetting;
+
+#define _MPP_FUNC_INIT		InitParralleProcess(MultiCoreSetting)
+#define _MPP_FUNC_START		StartParrallelProcess(MultiCoreSetting)
+#define _MPP_FUNC_STOP		StopParrallelProcess(MultiCoreSetting)
+/*****************************************************************************
+ Prototype    : InitParralleProcess
+ Description  : 核间交互初始化
+ Input        : structMultiCoreSetting MCS，核间交互参数
+ Output       : 无
+ Return Value : 无
+*****************************************************************************/
+extern void InitParralleProcess(structMultiCoreSetting MCS);
+/*****************************************************************************
+ Prototype    : StartParrallelProcess
+ Description  : 核间交互开始，在分核操作之前使用
+ Input        : structMultiCoreSetting MCS，核间交互参数
+ Output       : 无
+ Return Value : 无
+*****************************************************************************/
+extern void StartParrallelProcess(structMultiCoreSetting MCS);
+/*****************************************************************************
+ Prototype    : InitParralleProcess
+ Description  : 核间交互结束，在分核操作之后使用
+ Input        : structMultiCoreSetting MCS，核间交互参数
+ Output       : 无
+ Return Value : 无
+*****************************************************************************/
+extern void StopParrallelProcess(structMultiCoreSetting MCS);
+
+
 #endif /* PLATFORMNTO1_H_ */
