@@ -176,4 +176,86 @@ extern void SRIO_Send_DoorBell(unsigned int uiDestID, unsigned int uiDoorBellInf
 *****************************************************************************/
 extern unsigned int SRIO_Read_DoorBell(void);
 
+
+
+
+
+/************************************************************************************************************/
+//TIMER
+/************************************************************************************************************/
+
+typedef enum
+{
+	TIMER64_ONE_SHOT_PULSE = 0, //单次定时器
+	TIMER64_PERIODIC_PULSE, 	//周期性脉冲定时器
+	TIMER64_PERIODIC_CLOCK, 	//周期性时钟定时器
+	TIMER64_WATCH_DOG 		    //看门狗
+}Timer64Mode;
+
+typedef struct  {
+	int timer_num; 				//定时器号
+	Timer64Mode timerMode; 		//定时器模式
+	unsigned long long period; 	//定时器周期
+}Timer64Config;
+
+/*****************************************************************************
+ Prototype    : delay_cycles
+ Description  : 时钟周期延时函数
+ Input        : unsigned long long cycles，延时周期
+ Output       : 无
+ Return Value : 无
+*****************************************************************************/
+extern void delay_cycles( unsigned long long cycles);
+/*****************************************************************************
+ Prototype    : delay_us
+ Description  : us延时函数
+ Input        : 延时时间，us
+ Output       : 无
+ Return Value : 无
+*****************************************************************************/
+extern void delay_us( unsigned int us);
+/*****************************************************************************
+ Prototype    : delay_ms
+ Description  : ms延时函数
+ Input        : 延时时间，ms
+ Output       : 无
+ Return Value : 无
+*****************************************************************************/
+extern void delay_ms( unsigned int ms);
+/*****************************************************************************
+ Prototype    : Timer64Local_Init
+ Description  : 定时器初始化函数，初始化完成后立即开始计数。
+ Input        : Timer64Config config，定时器配置，注：最小单位为us
+ Output       : 无
+ Return Value : 无
+*****************************************************************************/
+extern void Timer64Local_Init(Timer64Config config);
+/*****************************************************************************
+ Prototype    : Timer64Local_Reset
+ Description  : 定时器复位，计数清零，停止计数
+ Input        : Timer64Config config，为初始化时的定时器配置。
+ Output       : 无
+ Return Value : 无
+*****************************************************************************/
+extern void Timer64Local_Reset(Timer64Config config);
+/*****************************************************************************
+ Prototype    : Timer64Local_InterruptCore_Init
+ Description  : 定时器内核中断配置，在无BIOS环境下使用。当在BIOS环境下时，参照以下函数配置中断，
+					Hwi_Params hwiParams;
+					Hwi_Handle myHwi;
+					Hwi_Params_init(&hwiParams);
+					hwiParams.eventId = CSL_GEM_TINTLN;//本地定时器中断
+					hwiParams.enableInt = TRUE;
+					myHwi = Hwi_create(6, (ti_sysbios_hal_Hwi_FuncPtr)Timer64Local_ISR, &hwiParams, NULL);//中断6，中断函数为Timer64Local_ISR，用户自己实现
+					if (myHwi == NULL)
+					{
+						printf("Hwi create failed\n");
+					}
+ Input        : unsigned int IntNum，CPU中断号
+ Output       : 无
+ Return Value : 配置成功为1.
+*****************************************************************************/
+extern int Timer64Local_InterruptCore_Init(unsigned int IntNum);
+
+
 #endif /* PLATFORMNTO1_H_ */
