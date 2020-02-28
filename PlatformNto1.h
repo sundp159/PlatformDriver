@@ -455,4 +455,17 @@ extern void StartParrallelProcess(structMultiCoreSetting MCS);
 extern void StopParrallelProcess(structMultiCoreSetting MCS);
 
 
+/*************************************************************************************************************/
+//EDMA
+/*************************************************************************************************************/
+extern CSL_TpccRegs*  gpEDMA_CC_regs[];
+extern void EDMA_init ();
+extern int  EdmaEnable (Uint32 src, Uint32 dst, Uint32 uiACount,
+		Uint32 uiBCount, Uint32 srcBIndex, Uint32 desBIndex, CSL_TpccRegs*  EDMACCRegs, Uint32 TC_channel);
+
+
+
+extern CSL_CgemRegs * gpCGEM_regs;
+
+
 #endif /* PLATFORMNTO1_H_ */
